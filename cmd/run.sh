@@ -16,20 +16,13 @@ else
 fi
 
 echo "开始启动Go程序..."
-nohup /usr/local/go/bin/go run main.go > output.log 2>&1 &
+nohup ./server > output.log 2>&1 &
 sleep 2 # 等待一段时间以确保程序已经启动
 pid=$!
 if [ -n "$(ps -p $pid -o pid=)" ]; then
   echo "Go程序已成功启动。"
+  exit 0
 else
   echo "Go程序启动失败，请检查错误信息。"
-  exit 1
-fi
-
-# 检查Go程序的执行结果
-if [ $? -eq 0 ]; then
-  echo "Go程序执行成功。"
-else
-  echo "Go程序执行失败。"
   exit 1
 fi

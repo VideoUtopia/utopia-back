@@ -1,0 +1,54 @@
+# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: Go
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Build
+        run: CGO_ENABLED=0 go build -o server
+
+#      - name: Test
+#        run: go test ./...
+
+      - name: Sent to ALIYUN
+        uses: easingthemes/ssh-deploy@main
+        env:
+          #私钥
+          SSH_PRIVATE_KEY: ${{ secrets.ALIYUN_SERVER_PRIVATE_KEY }}
+          #scp参数
+          ARGS: "-rltgoDzvO --delete"
+          #源目录
+          SOURCE: "./server ./cmd/run.sh"
+          #服务器IP
+          REMOTE_HOST:  ${{ secrets.ALIYUN_SERVER_HOST }}
+          #用户
+          REMOTE_USER: ${{ secrets.ALIYUN_SERVER_REMOTE_USER }}
+          #目标地址
+          TARGET: "/root/utopia-back"
+
+      - name: Deploy on ALIYUN
+        uses: appleboy/ssh-action@master
+        with:
+          host:  ${{ secrets.ALIYUN_SERVER_HOST }}
+          username: ${{ secrets.ALIYUN_SERVER_REMOTE_USER }}
+          password: ${{ secrets.ALIYUN_SERVER_PWD }}
+          debug: true
+          script: |
+            cd /root/utopia-back
+            chmod +x ./run.sh
+            ./run.sh
